@@ -19,6 +19,6 @@
     "src/**/*.jsx",
     "src/**/*.ts",
     "src/**/*.tsx"
-  ],
+, "seed.js"  ],
   "exclude": ["node_modules"]
 }
