@@ -7,6 +7,10 @@ import NotFound from "./pages/NotFound";
 import LandingPage from "./features/landing/pages/LandingPage";
 import AdminLogin from "./features/admin/pages/AdminLogin";
 import Dashboard from "./features/dashboard/index/pages/Dashboard";
+import LoanServices from "./features/dashboard/loans/pages/LoansServices";
+import InsuranceServices from "./features/dashboard/insurance/pages/InsuranceServices";
+import { CreateInsuranceService } from "./features/dashboard/insurance/pages/CreateInsuranceService";
+import ServiceDetails from "./features/landing/components/ServiceDetails";
 
 const queryClient = new QueryClient();
 
@@ -21,6 +25,10 @@ const App = () => (
           <Route path="/admin-login" element={<AdminLogin />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/loans" element={<LoanServices />} />
+          <Route path="/insurance/create" element={<CreateInsuranceService />} />
+          <Route path="/insurance" element={<InsuranceServices />} />
+          <Route path="/service" element={<ServiceDetails />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

@@ -1,22 +1,8 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore, collection, addDoc } from "firebase/firestore";
-// import { Briefcase, Building2, Car, Clock, Coins, Heart, Home, Plane, Shield, User } from "lucide-react";
-// import { db } from "./lib/firebaseConfig";
+import { db } from "./lib/firebaseConfig";
 
-// Apni Firebase config daal yahan
 
-const firebaseConfig = {
-    apiKey: "AIzaSyAiAkWDdr11YTbG38a4NIWOfrfuUmXr2sU",
-    authDomain: "flexichoice-backend.firebaseapp.com",
-    projectId: "flexichoice-backend",
-    storageBucket: "flexichoice-backend.firebasestorage.app",
-    messagingSenderId: "982615606905",
-    appId: "1:982615606905:web:6de695e7f26fa40c5bb6a8",
-    measurementId: "G-2CGRKWNC2X"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
 
 const loanServices = [
     { icon: "Home", title: "Home Loans", description: "Realize your dream of owning a home with our competitive interest rates and seamless approval process.", features: ["Loan amount up to ₹5 Cr", "Attractive Interest Rates", "Quick & Easy Processing"], buttonText: "Explore Home Loans" },

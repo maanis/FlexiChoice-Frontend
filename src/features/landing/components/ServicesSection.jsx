@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Home,
@@ -14,6 +14,9 @@ import {
   CheckCircle2,
   ArrowRight
 } from 'lucide-react';
+import * as LucideIcons from "lucide-react";
+import { useInsurance, useLoans } from '../../../hooks/useFirseStoreServices';
+import ServiceCardSkeleton from './ServiceCardSkeleton';
 
 // --- Mock ShadCN UI Components for demonstration ---
 // In a real app, you would import these from your UI library (e.g., @/components/ui/card).
@@ -24,22 +27,22 @@ const CardTitle = ({ className, children }) => <h3 className={className}>{childr
 const Button = ({ className, children }) => <button className={className}>{children}</button>;
 
 // --- Data for Services ---
-const loanServices = [
-  { icon: Home, title: "Home Loans", description: "Realize your dream of owning a home with our competitive interest rates and seamless approval process.", features: ["Loan amount up to ₹5 Cr", "Attractive Interest Rates", "Quick & Easy Processing"], buttonText: "Explore Home Loans" },
-  { icon: User, title: "Personal Loans", description: "Address your immediate financial needs with our flexible and collateral-free personal loan options.", features: ["Instant Disbursal", "No Collateral Required", "Flexible Repayment Tenure"], buttonText: "Get a Personal Loan" },
-  { icon: Briefcase, title: "Business Loans", description: "Fuel your business ambitions with our tailored financing solutions for expansion, and working capital.", features: ["Working Capital Finance", "Term Loans for Expansion", "Customized Solutions"], buttonText: "Grow Your Business" },
-  { icon: Coins, title: "Gold Loans", description: "Get instant cash against your gold jewelry with minimal documentation and secure storage.", features: ["Instant Cash in Minutes", "No Income Proof Needed", "Complete Security for Gold"], buttonText: "Unlock Gold Value" },
-  { icon: Building2, title: "Mortgage Loans", description: "Leverage your property's value for significant personal or business needs with our loan against property.", features: ["High Loan-to-Value Ratio", "Extended Repayment Tenure", "Competitive Interest Rates"], buttonText: "Leverage Your Property" },
-  { icon: Coins, title: "Private Funding", description: "Get instant cash against your gold jewelry with minimal documentation and secure storage.", features: ["Instant Cash in Minutes", "No Income Proof Needed", "Complete Security for Gold"], buttonText: "Unlock Gold Value" },
-];
-const insuranceServices = [
-  { icon: Shield, title: "Life Insurance", description: "Build a financial corpus for your future goals while ensuring life protection with our savings plans.", features: ["Insurance + Investment", "Guaranteed Returns", "Wealth Creation for Goals"], buttonText: "Plan Your Life Goals" },
-  { icon: Heart, title: "Health Insurance", description: "Protect yourself and your family with comprehensive health coverage for medical emergencies.", features: ["Cashless Hospitalization", "Covers Pre & Post Hospitalization", "Tax Benefits under 80D"], buttonText: "Secure Your Health" },
-  { icon: Clock, title: "Term Life Insurance", description: "Ensure your family's financial security in your absence with a high-coverage, low-premium term plan.", features: ["Large Cover at Low Premium", "Critical Illness Rider", "Multiple Payout Options"], buttonText: "Protect Your Family" },
-  { icon: Car, title: "Vehicle Insurance", description: "Get complete protection for your car or bike against accidents, theft, and other damages.", features: ["Zero Depreciation Cover", "24/7 Roadside Assistance", "Quick & Digital Claims"], buttonText: "Insure Your Vehicle" },
-  { icon: Plane, title: "Travel Insurance", description: "Travel the world worry-free with our plans covering medical emergencies, trip cancellations, and more.", features: ["Global Coverage", "Cashless Medical Treatment", "Baggage & Flight Delay Cover"], buttonText: "Travel Fearlessly" },
-  { icon: Plane, title: "Overseas Insurance", description: "Travel the world worry-free with our plans covering medical emergencies, trip cancellations, and more.", features: ["Global Coverage", "Cashless Medical Treatment", "Baggage & Flight Delay Cover"], buttonText: "Travel Fearlessly" }
-];
+// const loanServices = [
+//   { icon: Home, title: "Home Loans", description: "Realize your dream of owning a home with our competitive interest rates and seamless approval process.", features: ["Loan amount up to ₹5 Cr", "Attractive Interest Rates", "Quick & Easy Processing"], buttonText: "Explore Home Loans" },
+//   { icon: User, title: "Personal Loans", description: "Address your immediate financial needs with our flexible and collateral-free personal loan options.", features: ["Instant Disbursal", "No Collateral Required", "Flexible Repayment Tenure"], buttonText: "Get a Personal Loan" },
+//   { icon: Briefcase, title: "Business Loans", description: "Fuel your business ambitions with our tailored financing solutions for expansion, and working capital.", features: ["Working Capital Finance", "Term Loans for Expansion", "Customized Solutions"], buttonText: "Grow Your Business" },
+//   { icon: Coins, title: "Gold Loans", description: "Get instant cash against your gold jewelry with minimal documentation and secure storage.", features: ["Instant Cash in Minutes", "No Income Proof Needed", "Complete Security for Gold"], buttonText: "Unlock Gold Value" },
+//   { icon: Building2, title: "Mortgage Loans", description: "Leverage your property's value for significant personal or business needs with our loan against property.", features: ["High Loan-to-Value Ratio", "Extended Repayment Tenure", "Competitive Interest Rates"], buttonText: "Leverage Your Property" },
+//   { icon: Coins, title: "Private Funding", description: "Get instant cash against your gold jewelry with minimal documentation and secure storage.", features: ["Instant Cash in Minutes", "No Income Proof Needed", "Complete Security for Gold"], buttonText: "Unlock Gold Value" },
+// ];
+// const insuranceServices = [
+//   { icon: Shield, title: "Life Insurance", description: "Build a financial corpus for your future goals while ensuring life protection with our savings plans.", features: ["Insurance + Investment", "Guaranteed Returns", "Wealth Creation for Goals"], buttonText: "Plan Your Life Goals" },
+//   { icon: Heart, title: "Health Insurance", description: "Protect yourself and your family with comprehensive health coverage for medical emergencies.", features: ["Cashless Hospitalization", "Covers Pre & Post Hospitalization", "Tax Benefits under 80D"], buttonText: "Secure Your Health" },
+//   { icon: Clock, title: "Term Life Insurance", description: "Ensure your family's financial security in your absence with a high-coverage, low-premium term plan.", features: ["Large Cover at Low Premium", "Critical Illness Rider", "Multiple Payout Options"], buttonText: "Protect Your Family" },
+//   { icon: Car, title: "Vehicle Insurance", description: "Get complete protection for your car or bike against accidents, theft, and other damages.", features: ["Zero Depreciation Cover", "24/7 Roadside Assistance", "Quick & Digital Claims"], buttonText: "Insure Your Vehicle" },
+//   { icon: Plane, title: "Travel Insurance", description: "Travel the world worry-free with our plans covering medical emergencies, trip cancellations, and more.", features: ["Global Coverage", "Cashless Medical Treatment", "Baggage & Flight Delay Cover"], buttonText: "Travel Fearlessly" },
+//   { icon: Plane, title: "Overseas Insurance", description: "Travel the world worry-free with our plans covering medical emergencies, trip cancellations, and more.", features: ["Global Coverage", "Cashless Medical Treatment", "Baggage & Flight Delay Cover"], buttonText: "Travel Fearlessly" }
+// ];
 
 // --- Animation Variants ---
 const gridContainerVariants = {
@@ -57,8 +60,10 @@ const gridItemVariants = {
 
 // --- Reusable Service Card Component ---
 const ServiceCard = ({ service, theme }) => {
-  const { icon: Icon, title, description, features, buttonText } = service;
+  const { icon, title, description, features, buttonText } = service;
   const [mousePosition, setMousePosition] = React.useState({ x: -1000, y: -1000 });
+
+  const Icon = LucideIcons[icon] || LucideIcons.HelpCircle; // fallback icon
 
   const handleMouseMove = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -95,14 +100,14 @@ const ServiceCard = ({ service, theme }) => {
           <div className="space-y-3 mb-8 text-left">
             {features.map((feature, idx) => (
               <div key={idx} className="flex items-center text-zinc-700 dark:text-zinc-300">
-                <CheckCircle2 className={`w-5 h-5 mr-3 flex-shrink-0 ${currentTheme.check}`} />
+                <LucideIcons.CheckCircle2 className={`w-5 h-5 mr-3 flex-shrink-0 ${currentTheme.check}`} />
                 <span>{feature}</span>
               </div>
             ))}
           </div>
           <Button className={`mt-auto w-full inline-flex items-center justify-center px-6 py-3 text-white font-semibold rounded-lg shadow-md transition-all duration-300 ${currentTheme.button} focus:outline-none focus:ring-2 focus:ring-offset-2 ring-white/50`}>
             {buttonText}
-            <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+            <LucideIcons.ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
           </Button>
         </CardContent>
       </Card>
@@ -155,6 +160,10 @@ const AnimatedTabs = ({ tabs, activeTab, setActiveTab }) => {
 export default function App({ activeTab, setActiveTab }) {
   // const [activeTab, setActiveTab] = React.useState('loans');
   const TABS = [{ id: 'loans', label: 'Loans' }, { id: 'insurance', label: 'Insurance' }];
+  const { data: loanServices, isLoading: loansLoading } = useLoans();
+  const { data: insuranceServices, isLoading: insuranceLoading } = useInsurance();
+
+  console.log(loanServices)
 
   return (
     <div className="font-sans bg-white dark:bg-zinc-950 min-h-screen">
@@ -188,11 +197,16 @@ export default function App({ activeTab, setActiveTab }) {
                   initial="hidden"
                   animate="show"
                 >
-                  {loanServices.map((service, index) => (
-                    <ServiceCard key={`loan-${index}`} service={service} theme="indigo" />
-                  ))}
+                  {loansLoading
+                    ? Array.from({ length: 3 }).map((_, i) => (
+                      <ServiceCardSkeleton key={`loan-skel-${i}`} />
+                    ))
+                    : loanServices.map((service, index) => (
+                      <ServiceCard key={`loan-${index}`} service={service} theme="indigo" />
+                    ))}
                 </motion.div>
               )}
+
               {activeTab === 'insurance' && (
                 <motion.div
                   className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
@@ -200,9 +214,13 @@ export default function App({ activeTab, setActiveTab }) {
                   initial="hidden"
                   animate="show"
                 >
-                  {insuranceServices.map((service, index) => (
-                    <ServiceCard key={`insurance-${index}`} service={service} theme="teal" />
-                  ))}
+                  {insuranceLoading
+                    ? Array.from({ length: 3 }).map((_, i) => (
+                      <ServiceCardSkeleton key={`insurance-skel-${i}`} />
+                    ))
+                    : insuranceServices.map((service, index) => (
+                      <ServiceCard key={`insurance-${index}`} service={service} theme="teal" />
+                    ))}
                 </motion.div>
               )}
             </motion.div>

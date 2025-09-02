@@ -5,6 +5,9 @@
 /* Flexi Choice Financial Services Design System
 All colors MUST be HSL for proper theming.
 */
+html {
+  scroll-behavior: smooth;
+}
 
 @layer base {
   :root {

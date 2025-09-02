@@ -1,8 +1,9 @@
-import React, { useState, lazy, Suspense } from "react";
+import React, { useState, lazy, Suspense, useEffect } from "react";
 
 // Critical components load immediately
 import Navbar from "../components/Navbar";
 import HeroSection from "../components/HeroSection";
+import { useLocation, useNavigate } from "react-router-dom";
 
 // Lazy load other components
 const ServicesSection = lazy(() => import('../components/ServicesSection'));
@@ -20,6 +21,38 @@ const Loading = () => (
 
 const LandingPage = () => {
     const [activeTab, setActiveTab] = useState('loans');
+    const location = useLocation();
+    const navigate = useNavigate()
+
+    useEffect(() => {
+        const st = location.state;
+        if (!st || (!st.scrollTo && !st.serviceType)) return;
+
+        if (st.serviceType) setActiveTab(st.serviceType);
+
+        const scrollTo = st.scrollTo || "home";
+
+        const doScroll = () => {
+            if (scrollTo === "home") {
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            } else {
+                const el = document.getElementById(scrollTo);
+                if (el) {
+                    el.scrollIntoView({ behavior: "smooth", block: "start" });
+                }
+            }
+        };
+
+        // wait longer to ensure lazy sections exist
+        const t = setTimeout(doScroll, 300);
+
+        // clear the state so back/forward doesn't re-trigger
+        navigate(".", { replace: true, state: {} });
+
+        return () => clearTimeout(t);
+    }, [location.key]);
+
+
 
     return (
         <div className="min-h-screen bg-background">

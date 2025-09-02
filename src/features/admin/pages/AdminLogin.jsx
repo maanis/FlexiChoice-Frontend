@@ -127,8 +127,8 @@ const MotionDiv = ({ children, className = "", delay = 0, ...props }) => (
 
 const AdminLogin = () => {
     const [formData, setFormData] = useState({
-        email: '',
-        password: '',
+        email: 'admin@raj.com',
+        password: 'admin.raj@973',
         remember: false
     });
     const [showPassword, setShowPassword] = useState(false);
@@ -178,8 +178,8 @@ const AdminLogin = () => {
             console.log('Login successful:', formData);
             navigate('/dashboard');
         } catch (error) {
-            console.error('Login failed:', error.message);
-            if (error.message.includes("invalid-credential")) {
+            console.log('Login failed:', error.message);
+            if (error.message.includes("(auth/invalid-credential)." || "invalid")) {
                 toast.error('Invalid email or password');
             }
             toast.error("Something went wrong!")

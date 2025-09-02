@@ -43,8 +43,8 @@ const navItems = [
         name: "Services",
         icon: IdCard,
         children: [
-            { name: "Loans", icon: CreditCard, path: "/services/kyc/aadhaar-verify" },
-            { name: "Insurance", icon: Shield, path: "/services/kyc/driving-licence" },
+            { name: "Loans", icon: CreditCard, path: "/loans" },
+            { name: "Insurance", icon: Shield, path: "/insurance" },
         ],
     },
     { name: "Quotes", icon: UploadCloud, path: "/quotes" },
@@ -54,12 +54,14 @@ const navItems = [
 const NavLink = ({ item, collapsed, isActive }) => (
     <Tooltip>
         <TooltipTrigger asChild>
-            <div className={`${isActive && 'border-r-3 border-zinc-700 '} px-2 `}>
+            <div className={`${isActive ? "" : ""}`}>
                 <Link
                     to={item.path}
                     className={cn(
-                        "flex items-center gap-4 rounded-lg px-3 py-2.5 text-sm font-medium text-white  transition-colors",
-                        isActive ? "bg-[#5246e9] w-full text-white" : "hover:bg-[#1f2937] hover:px-5 transition-all hover:text-white",
+                        "flex items-center my-1 gap-4 rounded-lg px-5 py-2.5 text-sm font-medium text-white transition-colors duration-200",
+                        isActive
+                            ? "bg-[#5246e9] text-white"
+                            : "hover:bg-[#1f2937] hover:text-white",
                         collapsed ? "justify-center" : "justify-start"
                     )}
                 >
@@ -71,6 +73,7 @@ const NavLink = ({ item, collapsed, isActive }) => (
         {collapsed && <TooltipContent side="right">{item.name}</TooltipContent>}
     </Tooltip>
 );
+
 
 export default function Sidebar({ className }) {
     const location = useLocation();
@@ -105,7 +108,7 @@ export default function Sidebar({ className }) {
         <TooltipProvider delayDuration={100}>
             <div
                 className={cn(
-                    "flex flex-col h-screen border-r bg-[#191a2a] text-foreground transition-all duration-300 ease-in-out",
+                    "flex flex-col h-screen  bg-[#191a2a] px-2 text-foreground transition-all duration-300 ease-in-out",
                     collapsed ? "w-20" : "w-64",
                     className
                 )}
@@ -126,53 +129,78 @@ export default function Sidebar({ className }) {
                     <nav className="flex flex-col gap-1 px-0">
                         {navItems.map((item) => {
                             const isMenuOpen = openMenu === item.name;
-                            const isChildActive = item.children?.some(child => location.pathname.startsWith(child.path));
+                            const isChildActive = item.children?.some(child =>
+                                location.pathname.startsWith(child.path)
+                            );
 
                             return item.children ? (
                                 <Tooltip key={item.name}>
-                                    <TooltipTrigger>
-                                        <button onClick={() => {
-                                            collapsed && setCollapsed(false)
-                                            handleMenuToggle(item.name)
-                                        }} className={cn(
-                                            "flex items-center w-full gap-4 rounded-lg px-5 py-2.5 text-sm font-medium text-white hover:bg-accent hover:text-accent-foreground transition-colors",
-                                            // isChildActive && "text-accent-foreground ",
-                                            isChildActive ? "bg-[#5246e9] w-full text-white" : "hover:bg-[#1f2937] hover:pl-7 transition-all hover:text-white",
-                                            collapsed ? "justify-center" : "justify-between"
-                                        )}>
-                                            <div className="flex items-center gap-4">
-                                                <item.icon size={18} />
-                                                {!collapsed && <span className="truncate">{item.name}</span>}
-                                            </div>
-                                            {!collapsed && (
-                                                <motion.div animate={{ rotate: isMenuOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
-                                                    <ChevronDown size={16} />
-                                                </motion.div>
-                                            )}
-                                        </button>
-                                        <AnimatePresence>
-                                            {!collapsed && isMenuOpen && (
-                                                <motion.div
-                                                    initial={{ height: 0, opacity: 0 }}
-                                                    animate={{ height: "auto", opacity: 1 }}
-                                                    exit={{ height: 0, opacity: 0 }}
-                                                    transition={{ duration: 0.3, ease: "easeInOut" }}
-                                                    className="flex flex-col ml-5 pl-2 border-l border-dashed"
-                                                >
-                                                    {item.children.map((child) => (
-                                                        <NavLink key={child.name} item={child} collapsed={collapsed} isActive={location.pathname === child.path} />
-                                                    ))}
-                                                </motion.div>
-                                            )}
-                                        </AnimatePresence>
+                                    <TooltipTrigger asChild>
+                                        <div>
+                                            {/* Parent menu button */}
+                                            <button
+                                                onClick={() => {
+                                                    collapsed && setCollapsed(false);
+                                                    handleMenuToggle(item.name);
+                                                }}
+                                                className={cn(
+                                                    "flex items-center w-full gap-4 rounded-lg px-5 py-2.5 text-sm font-medium text-white transition-colors duration-200",
+                                                    isChildActive
+                                                        ? " text-white"
+                                                        : "hover:bg-[#1f2937] hover:text-white",
+                                                    collapsed ? "justify-center" : "justify-between"
+                                                )}
+                                            >
+                                                <div className="flex items-center gap-4">
+                                                    <item.icon size={18} />
+                                                    {!collapsed && <span className="truncate">{item.name}</span>}
+                                                </div>
+                                                {!collapsed && (
+                                                    <motion.div
+                                                        animate={{ rotate: isMenuOpen ? 180 : 0 }}
+                                                        transition={{ duration: 0.2 }}
+                                                    >
+                                                        <ChevronDown size={16} />
+                                                    </motion.div>
+                                                )}
+                                            </button>
+
+                                            {/* Child menu */}
+                                            <AnimatePresence>
+                                                {!collapsed && isMenuOpen && (
+                                                    <motion.div
+                                                        initial={{ height: 0, opacity: 0 }}
+                                                        animate={{ height: "auto", opacity: 1 }}
+                                                        exit={{ height: 0, opacity: 0 }}
+                                                        transition={{ duration: 0.3, ease: "easeInOut" }}
+                                                        className="flex flex-col ml-5 pl-2 border-l border-dashed"
+                                                    >
+                                                        {item.children.map((child) => (
+                                                            <NavLink
+                                                                key={child.name}
+                                                                item={child}
+                                                                collapsed={collapsed}
+                                                                isActive={location.pathname === child.path}
+                                                            />
+                                                        ))}
+                                                    </motion.div>
+                                                )}
+                                            </AnimatePresence>
+                                        </div>
                                     </TooltipTrigger>
                                     {collapsed && <TooltipContent side="right">{item.name}</TooltipContent>}
                                 </Tooltip>
                             ) : (
-                                <NavLink key={item.name} item={item} collapsed={collapsed} isActive={location.pathname === item.path} />
+                                <NavLink
+                                    key={item.name}
+                                    item={item}
+                                    collapsed={collapsed}
+                                    isActive={location.pathname === item.path}
+                                />
                             );
                         })}
                     </nav>
+
                 </ScrollArea>
 
                 {/* User Profile & Logout Section */}
