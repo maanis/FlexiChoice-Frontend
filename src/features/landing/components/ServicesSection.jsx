@@ -17,14 +17,17 @@ import {
 import * as LucideIcons from "lucide-react";
 import { useInsurance, useLoans } from '../../../hooks/useFirseStoreServices';
 import ServiceCardSkeleton from './ServiceCardSkeleton';
+import { useNavigate } from 'react-router-dom';
+import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
+import { Button } from '../../../components/ui/button';
 
 // --- Mock ShadCN UI Components for demonstration ---
 // In a real app, you would import these from your UI library (e.g., @/components/ui/card).
-const Card = ({ className, children, onMouseMove, onMouseLeave }) => <div className={className} onMouseMove={onMouseMove} onMouseLeave={onMouseLeave}>{children}</div>;
-const CardHeader = ({ className, children }) => <div className={className}>{children}</div>;
-const CardContent = ({ className, children }) => <div className={className}>{children}</div>;
-const CardTitle = ({ className, children }) => <h3 className={className}>{children}</h3>;
-const Button = ({ className, children }) => <button className={className}>{children}</button>;
+// const Card = ({ className, children, onMouseMove, onMouseLeave }) => <div className={className} onMouseMove={onMouseMove} onMouseLeave={onMouseLeave}>{children}</div>;
+// const CardHeader = ({ className, children }) => <div className={className}>{children}</div>;
+// const CardContent = ({ className, children }) => <div className={className}>{children}</div>;
+// const CardTitle = ({ className, children }) => <h3 className={className}>{children}</h3>;
+// const Button = ({ className, children }) => <button className={className}>{children}</button>;
 
 // --- Data for Services ---
 // const loanServices = [
@@ -59,9 +62,10 @@ const gridItemVariants = {
 };
 
 // --- Reusable Service Card Component ---
-const ServiceCard = ({ service, theme }) => {
+const ServiceCard = ({ service, theme, type }) => {
   const { icon, title, description, features, buttonText } = service;
   const [mousePosition, setMousePosition] = React.useState({ x: -1000, y: -1000 });
+  const navigate = useNavigate();
 
   const Icon = LucideIcons[icon] || LucideIcons.HelpCircle; // fallback icon
 
@@ -105,10 +109,15 @@ const ServiceCard = ({ service, theme }) => {
               </div>
             ))}
           </div>
-          <Button className={`mt-auto w-full inline-flex items-center justify-center px-6 py-3 text-white font-semibold rounded-lg shadow-md transition-all duration-300 ${currentTheme.button} focus:outline-none focus:ring-2 focus:ring-offset-2 ring-white/50`}>
+          <Button onClick={() => {
+            console.log("clicked!");
+            navigate(`/${type}/${service?.id}`);
+          }}
+            className={`mt-auto w-full inline-flex items-center justify-center px-6 py-3 text-white font-semibold rounded-lg shadow-md transition-all duration-300 ${currentTheme.button} focus:outline-none focus:ring-2 focus:ring-offset-2 ring-white/50`}>
             {buttonText}
             <LucideIcons.ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
           </Button>
+
         </CardContent>
       </Card>
     </motion.div>
@@ -202,7 +211,7 @@ export default function App({ activeTab, setActiveTab }) {
                       <ServiceCardSkeleton key={`loan-skel-${i}`} />
                     ))
                     : loanServices.map((service, index) => (
-                      <ServiceCard key={`loan-${index}`} service={service} theme="indigo" />
+                      <ServiceCard key={`loan-${index}`} service={service} type="loan" theme="indigo" />
                     ))}
                 </motion.div>
               )}
@@ -219,7 +228,7 @@ export default function App({ activeTab, setActiveTab }) {
                       <ServiceCardSkeleton key={`insurance-skel-${i}`} />
                     ))
                     : insuranceServices.map((service, index) => (
-                      <ServiceCard key={`insurance-${index}`} service={service} theme="teal" />
+                      <ServiceCard key={`insurance-${index}`} service={service} type="insurance" theme="teal" />
                     ))}
                 </motion.div>
               )}

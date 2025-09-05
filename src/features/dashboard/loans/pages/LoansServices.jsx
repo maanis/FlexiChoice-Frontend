@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, ArrowLeft } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 // import { ServiceCard } from '@/components/dashboard/ServiceCard';
 // import { DeleteDialog } from '@/components/dashboard/DeleteDialog';
@@ -10,6 +10,8 @@ import { ServiceCard } from '../../components/ServiceCard';
 import { DeleteDialog } from '../../components/DeleteDialog';
 import Sidebar from '../../../../components/Sidebar';
 import { useLoans } from '../../../../hooks/useFirseStoreServices';
+import { ServiceCardSkeleton } from '../../components/ServiceCardSkeleton';
+import { deleteLoanRequest } from '../../../../services/firestoreService';
 
 const initialLoanServices = [
     { id: 1, icon: "Home", title: "Home Loans", description: "Realize your dream of owning a home with our competitive interest rates and seamless approval process.", features: ["Loan amount up to ₹5 Cr", "Attractive Interest Rates", "Quick & Easy Processing"], buttonText: "Explore Home Loans" },
@@ -28,23 +30,23 @@ const LoanServices = () => {
 
 
     console.log(loans);
+    const navigate = useNavigate()
 
     const handleEdit = (service) => {
         // Navigate to edit page - will be implemented with React Router
         console.log('Edit service:', service);
+        navigate(`/loan/edit/${service.id}`);
     };
 
     const handleDelete = (service) => {
         setDeleteDialog({ open: true, service });
     };
 
-    const confirmDelete = () => {
+    const confirmDelete = async () => {
         if (deleteDialog.service) {
+            await deleteLoanRequest(deleteDialog.service?.id);
             setServices(prev => prev.filter(s => s.id !== deleteDialog.service.id));
-            toast({
-                title: "Service deleted",
-                description: `${deleteDialog.service.title} has been removed.`,
-            });
+            toast.success(`${deleteDialog.service.title} has been removed.`);
             setDeleteDialog({ open: false, service: null });
         }
     };
@@ -53,18 +55,12 @@ const LoanServices = () => {
         if (loans) setServices(loans);
     }, [loans]);
 
-    if (isLoading) {
-        return (
-            <div className="h-screen flex items-center justify-center">
-                <p>Loading...</p>
-            </div>
-        );
-    }
+
 
     return (
-        <div className="h-screen flex bg-background">
+        <div className="h-screen md:h-screen max-md:flex-col flex bg-background">
             <Sidebar />
-            <div className="container flex-1 overflow-y-auto mx-auto px-6 py-8">
+            <div className="container flex-1 overflow-y-auto mx-auto px-6 py-5">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -73,18 +69,18 @@ const LoanServices = () => {
                     {/* Header */}
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                            <Link to="/">
+                            {/* <Link to="/">
                                 <Button variant="ghost" size="sm">
                                     <ArrowLeft className="w-4 h-4 mr-2" />
                                     Back to Dashboard
                                 </Button>
-                            </Link>
+                            </Link> */}
                             <div>
-                                <h1 className="text-4xl font-bold text-foreground">Loan Services</h1>
-                                <p className="text-muted-foreground mt-2">Manage your loan service offerings</p>
+                                <h1 className="text-xl font-bold text-foreground">Loan Services</h1>
+                                <p className="text-muted-foreground text-xs">Manage your loan service offerings</p>
                             </div>
                         </div>
-                        <Link to="/loans/create">
+                        <Link to="/loan/create">
                             <Button className="bg-gradient-primary hover:shadow-glow">
                                 <Plus className="w-4 h-4 mr-2" />
                                 Add Loan Service
@@ -107,23 +103,30 @@ const LoanServices = () => {
                         animate="show"
                     >
                         <AnimatePresence>
-                            {services.map((service, index) => (
-                                <motion.div
-                                    key={service.id}
-                                    variants={{
-                                        hidden: { opacity: 0, scale: 0.8 },
-                                        show: { opacity: 1, scale: 1 }
-                                    }}
-                                    exit={{ opacity: 0, scale: 0.8, transition: { duration: 0.2 } }}
-                                >
-                                    <ServiceCard
-                                        service={service}
-                                        index={index}
-                                        onEdit={() => handleEdit(service)}
-                                        onDelete={() => handleDelete(service)}
-                                    />
-                                </motion.div>
-                            ))}
+                            {isLoading ? (
+                                Array.from({ length: 5 }).map((_, index) => (
+                                    <ServiceCardSkeleton key={index} index={index} />
+                                ))
+                            ) : (
+                                services.map((service, index) => (
+                                    <motion.div
+                                        key={service.id}
+                                        variants={{
+                                            hidden: { opacity: 0, scale: 0.8 },
+                                            show: { opacity: 1, scale: 1 }
+                                        }}
+                                        exit={{ opacity: 0, scale: 0.8, transition: { duration: 0.2 } }}
+                                    >
+                                        <ServiceCard
+                                            service={service}
+                                            index={index}
+                                            onEdit={() => handleEdit(service)}
+                                            onDelete={() => handleDelete(service)}
+                                        />
+                                    </motion.div>
+                                ))
+                            )}
+
                         </AnimatePresence>
                     </motion.div>
                 </motion.div>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Shield, Eye, EyeOff, AlertCircle } from 'lucide-react';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { Shield, Eye, EyeOff, AlertCircle, ArrowLeft } from 'lucide-react';
+import { onAuthStateChanged, signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../../../lib/firebaseConfig';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
@@ -172,18 +172,18 @@ const AdminLogin = () => {
         setIsLoading(true);
 
         try {
-            // await new Promise(resolve => setTimeout(resolve, 2000));
             const res = await signInWithEmailAndPassword(auth, formData.email, formData.password);
-            console.log(res)
-            console.log('Login successful:', formData);
-            navigate('/dashboard');
+            console.log("Login successful:", res.user);
+            toast.success("Welcome back!");
+            navigate("/dashboard");
         } catch (error) {
-            console.log('Login failed:', error.message);
-            if (error.message.includes("(auth/invalid-credential)." || "invalid")) {
-                toast.error('Invalid email or password');
+            if (error.code === "auth/invalid-credential" || error.code === "auth/wrong-password") {
+                toast.error("Invalid email or password");
+            } else {
+                toast.error("Something went wrong!");
             }
-            toast.error("Something went wrong!")
-        } finally {
+        }
+        finally {
             setIsLoading(false);
         }
     };
@@ -193,6 +193,16 @@ const AdminLogin = () => {
             handleSubmit();
         }
     };
+
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            if (user) {
+                navigate("/dashboard"); // Redirect if already logged in
+            }
+        });
+
+        return () => unsubscribe(); // cleanup
+    }, [navigate]);
 
     return (
         <div className="bg-muted flex min-h-screen flex-col items-center justify-center gap-6 p-6 md:p-10">
@@ -279,7 +289,7 @@ const AdminLogin = () => {
                                 </div>
 
                                 {/* Remember Me */}
-                                <div className="flex items-center space-x-2">
+                                {/* <div className="flex items-center space-x-2">
                                     <Checkbox
                                         id="remember"
                                         name="remember"
@@ -292,7 +302,7 @@ const AdminLogin = () => {
                                     >
                                         Remember me for 30 days
                                     </Label>
-                                </div>
+                                </div> */}
 
                                 {/* Submit Button */}
                                 <Button
@@ -311,11 +321,8 @@ const AdminLogin = () => {
                                 </Button>
 
                                 {/* Support Link */}
-                                <div className="text-center text-sm">
-                                    Need help?{" "}
-                                    <button className="underline underline-offset-4 hover:text-primary">
-                                        Contact IT Support
-                                    </button>
+                                <div onClick={() => navigate('/')} className="text-center hover:gap-3 transition-all hover:text-zinc-600 flex gap-2 cursor-pointer items-center justify-center text-sm">
+                                    <ArrowLeft className='size-4' /> Back to home
                                 </div>
                             </div>
                         </CardContent>

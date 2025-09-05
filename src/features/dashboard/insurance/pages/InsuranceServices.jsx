@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, ArrowLeft } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 // import { ServiceCard } from '@/components/dashboard/ServiceCard';
 // import { DeleteDialog } from '@/components/dashboard/DeleteDialog';
@@ -10,6 +10,8 @@ import { ServiceCard } from '../../components/ServiceCard';
 import { DeleteDialog } from '../../components/DeleteDialog';
 import Sidebar from '../../../../components/Sidebar';
 import { useInsurance } from '../../../../hooks/useFirseStoreServices';
+import { ServiceCardSkeleton } from '../../components/ServiceCardSkeleton';
+import { deleteInsuranceRequest } from '../../../../services/firestoreService';
 // import { useToast } from '@/hooks/use-toast';
 
 const initialInsuranceServices = [
@@ -22,37 +24,39 @@ const initialInsuranceServices = [
 ];
 
 const InsuranceServices = () => {
-    const [services, setServices] = useState(initialInsuranceServices);
+    const [services, setServices] = useState([]);
+    const { data: InsuranceServicesData, isLoading } = useInsurance();
+
     const [deleteDialog, setDeleteDialog] = useState({ open: false, service: null });
     // const { toast } = useToast();
     const { data } = useInsurance()
     console.log(data)
+    const navigate = useNavigate()
 
     const handleEdit = (service) => {
         // Navigate to edit page - will be implemented with React Router
         console.log('Edit service:', service);
+        navigate(`/insurance/edit/${service.id}`);
+
     };
 
     const handleDelete = (service) => {
         setDeleteDialog({ open: true, service });
     };
 
-    const confirmDelete = () => {
+    const confirmDelete = async () => {
         if (deleteDialog.service) {
+            await deleteInsuranceRequest(deleteDialog.service.id);
             setServices(prev => prev.filter(s => s.id !== deleteDialog.service.id));
-            // toast({
-            //     title: "Service deleted",
-            //     description: `${deleteDialog.service.title} has been removed.`,
-            // });
-            toast.success('Service deleted')
+            toast.success(`${deleteDialog.service.title} has been removed.`);
             setDeleteDialog({ open: false, service: null });
         }
     };
 
     return (
-        <div className="h-screen flex bg-background">
+        <div className="h-screen md:h-screen max-md:flex-col flex bg-background">
             <Sidebar />
-            <div className="container flex-1 overflow-y-auto mx-auto px-6 py-8">
+            <div className="container flex-1 overflow-y-auto mx-auto px-6 py-5">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -61,15 +65,15 @@ const InsuranceServices = () => {
                     {/* Header */}
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                            <Link to="/">
+                            {/* <Link to="/">
                                 <Button variant="ghost" size="sm">
                                     <ArrowLeft className="w-4 h-4 mr-2" />
                                     Back to Dashboard
                                 </Button>
-                            </Link>
+                            </Link> */}
                             <div>
-                                <h1 className="text-4xl font-bold text-foreground">Insurance Services</h1>
-                                <p className="text-muted-foreground mt-2">Manage your insurance service offerings</p>
+                                <h1 className="text-xl font-bold text-foreground">Insurance Services</h1>
+                                <p className="text-muted-foreground mt-2 text-xs">Manage your insurance service offerings</p>
                             </div>
                         </div>
                         <Link to="/insurance/create">
@@ -95,7 +99,30 @@ const InsuranceServices = () => {
                         animate="show"
                     >
                         <AnimatePresence>
-                            {services.map((service, index) => (
+                            {isLoading ? (
+                                Array.from({ length: 5 }).map((_, index) => (
+                                    <ServiceCardSkeleton key={index} index={index} />
+                                ))
+                            ) : (
+                                InsuranceServicesData?.map((service, index) => (
+                                    <motion.div
+                                        key={service.id}
+                                        variants={{
+                                            hidden: { opacity: 0, scale: 0.8 },
+                                            show: { opacity: 1, scale: 1 }
+                                        }}
+                                        exit={{ opacity: 0, scale: 0.8, transition: { duration: 0.2 } }}
+                                    >
+                                        <ServiceCard
+                                            service={service}
+                                            index={index}
+                                            onEdit={() => handleEdit(service)}
+                                            onDelete={() => handleDelete(service)}
+                                        />
+                                    </motion.div>
+                                ))
+                            )}
+                            {/* {InsuranceServicesData?.map((service, index) => (
                                 <motion.div
                                     key={service.id}
                                     variants={{
@@ -111,7 +138,7 @@ const InsuranceServices = () => {
                                         onDelete={() => handleDelete(service)}
                                     />
                                 </motion.div>
-                            ))}
+                            ))} */}
                         </AnimatePresence>
                     </motion.div>
                 </motion.div>

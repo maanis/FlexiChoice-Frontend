@@ -1,5 +1,6 @@
-import { useLocation } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
 import { useEffect } from "react";
+import { motion } from "framer-motion";
 
 const NotFound = () => {
   const location = useLocation();
@@ -12,14 +13,32 @@ const NotFound = () => {
   }, [location.pathname]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">404</h1>
-        <p className="text-xl text-gray-600 mb-4">Oops! Page not found</p>
-        <a href="/" className="text-blue-500 hover:text-blue-700 underline">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
+      <motion.div
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="text-center"
+      >
+        <motion.h1
+          initial={{ scale: 0.8 }}
+          animate={{ scale: 1 }}
+          transition={{ type: "spring", stiffness: 200 }}
+          className="text-7xl font-extrabold text-gray-800 dark:text-gray-100"
+        >
+          404
+        </motion.h1>
+        <p className="mt-4 text-xl text-gray-600 dark:text-gray-400">
+          Oops! The page you’re looking for doesn’t exist.
+        </p>
+
+        <Link
+          to="/"
+          className="mt-6 inline-block rounded-2xl bg-blue-600 px-6 py-3 text-white font-medium shadow-md hover:bg-blue-700 transition"
+        >
           Return to Home
-        </a>
-      </div>
+        </Link>
+      </motion.div>
     </div>
   );
 };

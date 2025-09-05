@@ -83,7 +83,7 @@ const Dashboard = () => {
     };
 
     return (
-        <div className="flex h-screen">
+        <div className="flex md:h-screen max-md:flex-col">
             <Sidebar />
             <div className="min-h-screen overflow-y-auto flex-1 bg-gray-50 p-4 lg:p-6">
                 <motion.div

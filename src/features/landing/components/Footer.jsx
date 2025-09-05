@@ -1,6 +1,8 @@
 import { CreditCard, Facebook, Twitter, Instagram, Linkedin, Mail, Phone, MapPin } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const Footer = () => {
+  const navigate = useNavigate();
   const quickLinks = [
     { name: 'Home', href: '#home' },
     { name: 'Services', href: '#services' },
@@ -10,11 +12,11 @@ const Footer = () => {
   ];
 
   const services = [
-    { name: 'Home Loans', href: '#' },
-    { name: 'Gold Loans', href: '#' },
-    { name: 'Personal Loans', href: '#' },
-    { name: 'Health Insurance', href: '#' },
-    { name: 'Life Insurance', href: '#' },
+    { name: 'Home Loans', href: 'loan/79VJAyTjOSZZaRVjoxXt' },
+    { name: 'Gold Loans', href: 'loan/fLGXXHTOV1rl3oVFke5J' },
+    { name: 'Personal Loans', href: 'loan/sTbzVQJa83kaogMJyOlG' },
+    { name: 'Health Insurance', href: 'insurance/T0hfZXkizMK1V8j5nOte' },
+    { name: 'Life Insurance', href: 'insurance/FZV4Jzuv8nm8YDG3pGe6' },
   ];
 
   const legal = [
@@ -88,12 +90,12 @@ const Footer = () => {
             <ul className="space-y-3">
               {services.map((service, index) => (
                 <li key={index}>
-                  <a
-                    href={service.href}
+                  <button
+                    onClick={() => navigate(`/${service.href}`)}
                     className="text-background/80 hover:text-secondary transition-colors"
                   >
                     {service.name}
-                  </a>
+                  </button>
                 </li>
               ))}
             </ul>

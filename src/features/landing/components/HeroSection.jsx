@@ -5,7 +5,7 @@ import { AuroraBackground } from '../../../components/ui/aurora-background';
 // import { AuroraBackground } from './ui/aurora-background';
 // import { AuroraBackground } from '@/components/ui/aurora-background';
 
-const HeroSection = () => (
+const HeroSection = ({ scrollToSection, setActiveTab }) => (
     <AuroraBackground>
         <section className="relative max-md:pt-64 min-h-screen text-black w-full flex items-center justify-center  overflow-hidden">
             {/* Background Image */}
@@ -29,10 +29,16 @@ const HeroSection = () => (
                             Your one-stop platform for <span className="font-semibold text-blue-600 dark:text-secondary">Home, Gold, Personal & Business Loans</span> and <span className="font-semibold text-blue-600 dark:text-secondary">Health, Life & Term Insurance</span>. Fast approvals, flexible options, and trusted protection for every need.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto justify-center lg:justify-start mb-8">
-                            <Button variant="cta" size="xl" className="w-full sm:w-auto">
+                            <Button onClick={() => {
+                                setActiveTab("loans");
+                                scrollToSection("services-section");
+                            }} variant="cta" size="xl" className="w-full sm:w-auto">
                                 Apply for Loan
                             </Button>
-                            <Button variant="outline" size="xl" className="w-full shadow-md sm:w-auto border-primary-foreground/30  dark: hover:bg-background/20">
+                            <Button onClick={() => {
+                                setActiveTab("insurance");
+                                scrollToSection("services-section");
+                            }} variant="outline" size="xl" className="w-full shadow-md sm:w-auto border-primary-foreground/30  dark: hover:bg-background/20">
                                 Get Insured
                             </Button>
                         </div>

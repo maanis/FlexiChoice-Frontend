@@ -5,6 +5,7 @@ import Textarea from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MapPin, Phone, Mail, Clock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { FaWhatsapp } from 'react-icons/fa';
 
 const ContactSection = () => {
   const [formData, setFormData] = useState({
@@ -174,9 +175,9 @@ const ContactSection = () => {
                 <CardContent className="p-6">
                   <h4 className="font-semibold text-foreground mb-2">WhatsApp Support</h4>
                   <p className="text-muted-foreground mb-3">Get instant support on WhatsApp</p>
-                  <Button variant="success" size="sm">
-                    Chat on WhatsApp
-                  </Button>
+                  <a href={`https://wa.me/+919920390455`} className='bg-green-500 flex max-w-fit p-2 rounded-md items-center gap-2 text-white text-sm' target="_blank" rel="noopener noreferrer" title="Send WhatsApp">
+                    <FaWhatsapp className="h-5 w-5 text-green-50 hover:text-green-700 transition-all" /> <span>Chat on WhatsApp</span>
+                  </a>
                 </CardContent>
               </Card>
             </div>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { FileText, Search, CheckCircle, ArrowRight, Sparkles } from 'lucide-react';
 
-const HowItWorksSection = () => {
+const HowItWorksSection = ({ scrollToSection }) => {
   const steps = [
     {
       icon: FileText,
@@ -135,12 +135,12 @@ const HowItWorksSection = () => {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                <button className="group inline-flex items-center justify-center gap-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold px-8 py-4 rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 text-lg">
+                <button onClick={() => scrollToSection("services-section")} className="group inline-flex items-center justify-center gap-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold px-8 py-4 rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 text-lg">
                   Start Your Application
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </button>
 
-                <button className="inline-flex items-center justify-center gap-2 bg-white/70 backdrop-blur-sm border-2 border-gray-200 text-gray-700 font-semibold px-8 py-4 rounded-xl hover:bg-white hover:border-gray-300 hover:scale-105 transition-all duration-300 text-lg">
+                <button onClick={() => scrollToSection("contact-section")} className="inline-flex items-center justify-center gap-2 bg-white/70 backdrop-blur-sm border-2 border-gray-200 text-gray-700 font-semibold px-8 py-4 rounded-xl hover:bg-white hover:border-gray-300 hover:scale-105 transition-all duration-300 text-lg">
                   Contact Us
                 </button>
               </div>

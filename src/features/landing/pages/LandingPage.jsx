@@ -52,12 +52,21 @@ const LandingPage = () => {
         return () => clearTimeout(t);
     }, [location.key]);
 
-
+    const scrollToSection = (id) => {
+        if (id === "home") {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        } else {
+            const el = document.getElementById(id);
+            if (el) {
+                el.scrollIntoView({ behavior: "smooth", block: "start" });
+            }
+        }
+    };
 
     return (
         <div className="min-h-screen bg-background">
             <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
-            <HeroSection />
+            <HeroSection setActiveTab={setActiveTab} scrollToSection={scrollToSection} />
 
             <div id="services-section">
                 <Suspense fallback={<Loading />}>
@@ -67,7 +76,7 @@ const LandingPage = () => {
 
             <div id="how-it-works-section">
                 <Suspense fallback={<Loading />}>
-                    <HowItWorksSection />
+                    <HowItWorksSection scrollToSection={scrollToSection} />
                 </Suspense>
             </div>
 

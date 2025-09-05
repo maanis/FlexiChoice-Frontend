@@ -1,367 +1,300 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Textarea from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Switch } from '@/components/ui/switch';
-import { Phone, Mail, MapPin, Briefcase, Send } from 'lucide-react';
+import { Mail, Briefcase, Send, User } from 'lucide-react';
 import { toast } from 'sonner';
-// import { useToast } from '@/hooks/use-toast';
+import { saveQuoteRequest } from '../../../services/firestoreService';
 
-const quoteSchema = z.object({
-    fullName: z.string().min(2, 'Full name must be at least 2 characters'),
-    email: z.string().email('Please enter a valid email address'),
-    phone: z.string().regex(/^[0-9]{10}$/, 'Please enter a valid 10-digit phone number'),
-    designation: z.string().min(2, 'Designation is required'),
-    permanentAddress: z.string().min(10, 'Permanent address must be at least 10 characters'),
-    communicationAddress: z.string().optional(),
-    occupation: z.enum(['salaried', 'self-employed']),
-    // Salaried fields
-    company: z.string().optional(),
-    monthlyIncome: z.string().optional(),
-    experience: z.string().optional(),
-    // Self-employed fields  
-    businessName: z.string().optional(),
-    businessType: z.string().optional(),
-    annualIncome: z.string().optional(),
-    businessAge: z.string().optional(),
-    message: z.string().min(10, 'Please provide details about your requirements'),
-    serviceName: z.string(),
-});
-
-const QuoteForm = ({ serviceName, serviceCategory }) => {
-    const [sameAsPermAddress, setSameAsPermAddress] = useState(false);
+const QuoteForm = ({ serviceName }) => {
     const [occupation, setOccupation] = useState('salaried');
-    // const { toast } = useToast();
+    const [sameAsPermAddress, setSameAsPermAddress] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const {
-        register,
-        handleSubmit,
-        formState: { errors, isSubmitting },
-        setValue,
-        watch,
-    } = useForm({
-        resolver: zodResolver(quoteSchema),
-        defaultValues: {
-            serviceName: serviceName,
-            occupation: 'salaried',
-        },
+    const [formData, setFormData] = useState({
+        fullName: '',
+        email: '',
+        phone: '',
+        designation: '',
+        occupation: occupation,
+        serviceName: serviceName,
+        company: '',
+        monthlyIncome: '',
+        experience: '',
+        businessName: '',
+        businessType: '',
+        annualIncome: '',
+        businessAge: '',
+        permanentAddress: '',
+        communicationAddress: '',
+        message: '',
     });
 
-    const permanentAddress = watch('permanentAddress');
+    const [errors, setErrors] = useState({});
 
-    React.useEffect(() => {
+    // Sync addresses
+    useEffect(() => {
         if (sameAsPermAddress) {
-            setValue('communicationAddress', permanentAddress);
+            setFormData((prev) => ({
+                ...prev,
+                communicationAddress: prev.permanentAddress,
+            }));
         } else {
-            setValue('communicationAddress', '');
+            setFormData((prev) => ({ ...prev, communicationAddress: '' }));
         }
-    }, [sameAsPermAddress, permanentAddress, setValue]);
+    }, [sameAsPermAddress, formData.permanentAddress]);
 
-    const onSubmit = async (data) => {
+    // Reset irrelevant fields on occupation change
+    useEffect(() => {
+        if (occupation === 'salaried') {
+            setFormData((prev) => ({
+                ...prev,
+                businessName: '',
+                businessType: '',
+                annualIncome: '',
+                businessAge: '',
+            }));
+        } else {
+            setFormData((prev) => ({
+                ...prev,
+                company: '',
+                monthlyIncome: '',
+                experience: '',
+                designation: '',
+            }));
+        }
+    }, [occupation]);
+
+    const handleChange = (e) => {
+        const { id, value } = e.target;
+        setFormData((prev) => ({ ...prev, [id]: value }));
+    };
+
+    const validate = () => {
+        const newErrors = {};
+        if (!formData.fullName || formData.fullName.length < 2) {
+            newErrors.fullName = 'Full name must be at least 2 characters';
+        }
+        if (!formData.email || !/^\S+@\S+\.\S+$/.test(formData.email)) {
+            newErrors.email = 'Please enter a valid email address';
+        }
+        if (!formData.phone || !/^[0-9]{10}$/.test(formData.phone)) {
+            newErrors.phone = 'Please enter a valid 10-digit phone number';
+        }
+        if (occupation === 'salaried' && (!formData.designation || formData.designation.length < 2)) {
+            newErrors.designation = 'Designation is required for salaried employees';
+        }
+        if (occupation === 'self-employed' && !formData.businessType) {
+            newErrors.businessType = 'Business type is required for self-employed applicants';
+        }
+        // if (!formData.permanentAddress || formData.permanentAddress.length < 10) {
+        //     newErrors.permanentAddress = 'Permanent address must be at least 10 characters';
+        // }
+        if (!formData.message || formData.message.length < 10) {
+            newErrors.message = 'Message must be at least 10 characters';
+        }
+        return newErrors;
+    };
+
+    const onSubmit = async (e) => {
+        e.preventDefault();
+        const validationErrors = validate();
+        if (Object.keys(validationErrors).length > 0) {
+            setErrors(validationErrors);
+            return;
+        }
+        setErrors({});
+        setIsSubmitting(true);
+
         try {
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 2000));
-
-            toast.success('Quote request submitted successfully!');
-
-            console.log('Quote submission:', data);
+            console.log('Form Data:', formData);
+            await saveQuoteRequest(formData);
+            toast.success('Quote request submitted successfully!', {
+                description: 'Our team will review your application and get back to you within 24 hours.',
+            });
+            setFormData({
+                fullName: '',
+                email: '',
+                phone: '',
+                designation: '',
+                company: '',
+                monthlyIncome: '',
+                experience: '',
+                businessName: '',
+                businessType: '',
+                annualIncome: '',
+                businessAge: '',
+                permanentAddress: '',
+                communicationAddress: '',
+                message: '',
+            });
         } catch (error) {
-            toast.error('Quote request submission failed.');
+            toast.error('Quote request failed. Please try again.', {
+                description: 'There was an issue submitting your request. Check your network and try again.',
+            });
+            console.error('Submission Error:', error);
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
     return (
-        <section className="py-20 bg-gradient-to-br from-muted/30 to-background">
+        <section className="py-24 bg-white text-gray-900">
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                {/* Heading */}
                 <motion.div
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 30 }}
                     whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.6 }}
-                    className="text-center mb-12"
+                    viewport={{ once: true, amount: 0.2 }}
+                    transition={{ duration: 0.8 }}
+                    className="text-center mb-16"
                 >
-                    <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
+                    <h2 className="text-4xl sm:text-5xl font-extrabold text-gray-900 mb-4">
                         Get Your {serviceName} Quote
                     </h2>
-                    <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                        Fill out the form below and our experts will provide you with a personalized quote within 24 hours
+                    <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto">
+                        Fill out the form below and our experts will provide you with a personalized quote.
                     </p>
                 </motion.div>
 
                 <motion.div
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 30 }}
                     whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.6, delay: 0.2 }}
+                    viewport={{ once: true, amount: 0.2 }}
+                    transition={{ duration: 0.8, delay: 0.2 }}
                 >
-                    <Card className="shadow-xl border-0 bg-card/80 backdrop-blur-sm">
-                        <CardHeader className="text-center pb-8">
-                            <CardTitle className="text-2xl text-foreground">
-                                {serviceCategory === 'loans' ? 'Loan Application Form' : 'Insurance Quote Request'}
-                            </CardTitle>
-                        </CardHeader>
+                    <Card className="rounded-3xl p-8 bg-gray-50 border border-gray-200 shadow-xl">
                         <CardContent>
-                            <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+                            <form onSubmit={onSubmit} className="space-y-12">
                                 {/* Personal Information */}
                                 <div className="space-y-6">
-                                    <h3 className="text-lg font-semibold text-foreground border-b pb-2">
+                                    <h3 className="text-xl font-bold text-gray-800 border-b border-gray-300 pb-4">
+                                        <User className="inline-block mr-2 w-5 h-5 text-gray-600" />
                                         Personal Information
                                     </h3>
-
-                                    <div className="grid md:grid-cols-2 gap-6">
+                                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                                         <div className="space-y-2">
-                                            <Label htmlFor="fullName" className="flex items-center gap-2">
-                                                <span>Full Name</span>
-                                                <span className="text-destructive">*</span>
-                                            </Label>
-                                            <Input
-                                                id="fullName"
-                                                {...register('fullName')}
-                                                placeholder="Enter your full name"
-                                                className="h-12"
-                                            />
-                                            {errors.fullName && (
-                                                <p className="text-sm text-destructive">{errors.fullName.message}</p>
-                                            )}
+                                            <Label htmlFor="fullName">Full Name</Label>
+                                            <Input id="fullName" value={formData.fullName} onChange={handleChange} placeholder="Enter your full name" />
+                                            {errors.fullName && <p className="text-sm text-red-600">{errors.fullName}</p>}
                                         </div>
-
                                         <div className="space-y-2">
-                                            <Label htmlFor="email" className="flex items-center gap-2">
-                                                <Mail className="w-4 h-4" />
-                                                <span>Email</span>
-                                                <span className="text-destructive">*</span>
-                                            </Label>
-                                            <Input
-                                                id="email"
-                                                type="email"
-                                                {...register('email')}
-                                                placeholder="your.email@example.com"
-                                                className="h-12"
-                                            />
-                                            {errors.email && (
-                                                <p className="text-sm text-destructive">{errors.email.message}</p>
-                                            )}
+                                            <Label htmlFor="email">Email</Label>
+                                            <Input id="email" type="email" value={formData.email} onChange={handleChange} placeholder="your.email@example.com" />
+                                            {errors.email && <p className="text-sm text-red-600">{errors.email}</p>}
                                         </div>
-
                                         <div className="space-y-2">
-                                            <Label htmlFor="phone" className="flex items-center gap-2">
-                                                <Phone className="w-4 h-4" />
-                                                <span>Phone Number</span>
-                                                <span className="text-destructive">*</span>
-                                            </Label>
-                                            <Input
-                                                id="phone"
-                                                {...register('phone')}
-                                                placeholder="10-digit mobile number"
-                                                className="h-12"
-                                            />
-                                            {errors.phone && (
-                                                <p className="text-sm text-destructive">{errors.phone.message}</p>
-                                            )}
+                                            <Label htmlFor="phone">Phone Number</Label>
+                                            <Input id="phone" value={formData.phone} onChange={handleChange} placeholder="10-digit mobile number" />
+                                            {errors.phone && <p className="text-sm text-red-600">{errors.phone}</p>}
                                         </div>
-
-                                        <div className="space-y-2">
-                                            <Label htmlFor="designation" className="flex items-center gap-2">
-                                                <Briefcase className="w-4 h-4" />
-                                                <span>Designation</span>
-                                                <span className="text-destructive">*</span>
-                                            </Label>
-                                            <Input
-                                                id="designation"
-                                                {...register('designation')}
-                                                placeholder="Your job title/designation"
-                                                className="h-12"
-                                            />
-                                            {errors.designation && (
-                                                <p className="text-sm text-destructive">{errors.designation.message}</p>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Address Information */}
-                                {/* <div className="space-y-6">
-                                    <h3 className="text-lg font-semibold text-foreground border-b pb-2">
-                                        Address Information
-                                    </h3>
-
-                                    <div className="space-y-6">
-                                        <div className="space-y-2">
-                                            <Label htmlFor="permanentAddress" className="flex items-center gap-2">
-                                                <MapPin className="w-4 h-4" />
-                                                <span>Permanent Address</span>
-                                                <span className="text-destructive">*</span>
-                                            </Label>
-                                            <Textarea
-                                                id="permanentAddress"
-                                                {...register('permanentAddress')}
-                                                placeholder="Enter your permanent address"
-                                                className="min-h-[100px]"
-                                            />
-                                            {errors.permanentAddress && (
-                                                <p className="text-sm text-destructive">{errors.permanentAddress.message}</p>
-                                            )}
-                                        </div>
-
-                                        <div className="flex items-center space-x-2">
-                                            <Switch
-                                                id="sameAddress"
-                                                checked={sameAsPermAddress}
-                                                onCheckedChange={setSameAsPermAddress}
-                                            />
-                                            <Label htmlFor="sameAddress">
-                                                Communication address is same as permanent address
-                                            </Label>
-                                        </div>
-
-                                        {!sameAsPermAddress && (
-                                            <div className="space-y-2">
-                                                <Label htmlFor="communicationAddress">
-                                                    Communication Address
-                                                </Label>
-                                                <Textarea
-                                                    id="communicationAddress"
-                                                    {...register('communicationAddress')}
-                                                    placeholder="Enter your communication address"
-                                                    className="min-h-[100px]"
-                                                />
+                                        {occupation === 'salaried' && (
+                                            <div className="space-y-2 lg:col-span-3">
+                                                <Label htmlFor="designation">Designation</Label>
+                                                <Input id="designation" value={formData.designation} onChange={handleChange} placeholder="Your job title" />
+                                                {errors.designation && <p className="text-sm text-red-600">{errors.designation}</p>}
                                             </div>
                                         )}
                                     </div>
-                                </div> */}
+                                </div>
 
-                                {/* Occupation Information */}
+                                {/* Occupation */}
                                 <div className="space-y-6">
-                                    <h3 className="text-lg font-semibold text-foreground border-b pb-2">
+                                    <h3 className="text-xl font-bold text-gray-800 border-b border-gray-300 pb-4">
+                                        <Briefcase className="inline-block mr-2 w-5 h-5 text-gray-600" />
                                         Occupation Details
                                     </h3>
-
-                                    <Tabs
-                                        value={occupation}
-                                        onValueChange={(value) => {
-                                            setOccupation(value);
-                                            setValue('occupation', value);
-                                        }}
-                                        className="w-full"
-                                    >
-                                        <TabsList className="grid w-full grid-cols-2">
+                                    <Tabs value={occupation} onValueChange={setOccupation}>
+                                        <TabsList className="grid grid-cols-2 bg-gray-200 rounded-xl p-1">
                                             <TabsTrigger value="salaried">Salaried</TabsTrigger>
                                             <TabsTrigger value="self-employed">Self Employed</TabsTrigger>
                                         </TabsList>
 
-                                        <TabsContent value="salaried" className="space-y-6 mt-6">
-                                            <div className="grid md:grid-cols-2 gap-6">
-                                                <div className="space-y-2">
+                                        {/* Salaried */}
+                                        <TabsContent value="salaried" className="mt-8">
+                                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }} className="grid md:grid-cols-2 gap-8">
+                                                <div>
                                                     <Label htmlFor="company">Company Name</Label>
-                                                    <Input
-                                                        id="company"
-                                                        {...register('company')}
-                                                        placeholder="Your company name"
-                                                        className="h-12"
-                                                    />
+                                                    <Input id="company" value={formData.company} onChange={handleChange} placeholder="Your company name" />
                                                 </div>
-                                                <div className="space-y-2">
+                                                <div>
                                                     <Label htmlFor="monthlyIncome">Monthly Income (₹)</Label>
-                                                    <Input
-                                                        id="monthlyIncome"
-                                                        {...register('monthlyIncome')}
-                                                        placeholder="Your monthly salary"
-                                                        className="h-12"
-                                                    />
+                                                    <Input id="monthlyIncome" value={formData.monthlyIncome} onChange={handleChange} placeholder="Your monthly salary" />
                                                 </div>
-                                                <div className="space-y-2">
-                                                    <Label htmlFor="experience">Work Experience</Label>
-                                                    <Input
-                                                        id="experience"
-                                                        {...register('experience')}
-                                                        placeholder="Years of experience"
-                                                        className="h-12"
-                                                    />
+                                                <div className="md:col-span-2">
+                                                    <Label htmlFor="experience">Work Experience (Years)</Label>
+                                                    <Input id="experience" value={formData.experience} onChange={handleChange} placeholder="Years of experience" />
                                                 </div>
-                                            </div>
+                                            </motion.div>
                                         </TabsContent>
 
-                                        <TabsContent value="self-employed" className="space-y-6 mt-6">
-                                            <div className="grid md:grid-cols-2 gap-6">
-                                                <div className="space-y-2">
+                                        {/* Self-Employed */}
+                                        <TabsContent value="self-employed" className="mt-8">
+                                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }} className="grid md:grid-cols-2 gap-8">
+                                                <div>
                                                     <Label htmlFor="businessName">Business Name</Label>
-                                                    <Input
-                                                        id="businessName"
-                                                        {...register('businessName')}
-                                                        placeholder="Your business name"
-                                                        className="h-12"
-                                                    />
+                                                    <Input id="businessName" value={formData.businessName} onChange={handleChange} placeholder="Your business name" />
                                                 </div>
-                                                <div className="space-y-2">
+                                                <div>
                                                     <Label htmlFor="businessType">Business Type</Label>
-                                                    <Input
-                                                        id="businessType"
-                                                        {...register('businessType')}
-                                                        placeholder="Type of business"
-                                                        className="h-12"
-                                                    />
+                                                    <select id="businessType" value={formData.businessType} onChange={handleChange} className="h-12 w-full border rounded-md px-3">
+                                                        <option value="">Select Business Type</option>
+                                                        <option value="sole-proprietorship">Sole Proprietorship</option>
+                                                        <option value="partnership">Partnership</option>
+                                                        <option value="llp">LLP</option>
+                                                        <option value="pvt-ltd">Private Limited</option>
+                                                        <option value="public-ltd">Public Limited</option>
+                                                        <option value="startup">Startup</option>
+                                                        <option value="others">Others</option>
+                                                    </select>
+                                                    {errors.businessType && <p className="text-sm text-red-600">{errors.businessType}</p>}
                                                 </div>
-                                                <div className="space-y-2">
+                                                <div>
                                                     <Label htmlFor="annualIncome">Annual Income (₹)</Label>
-                                                    <Input
-                                                        id="annualIncome"
-                                                        {...register('annualIncome')}
-                                                        placeholder="Your annual income"
-                                                        className="h-12"
-                                                    />
+                                                    <Input id="annualIncome" value={formData.annualIncome} onChange={handleChange} placeholder="Your annual income" />
                                                 </div>
-                                                <div className="space-y-2">
-                                                    <Label htmlFor="businessAge">Business Age</Label>
-                                                    <Input
-                                                        id="businessAge"
-                                                        {...register('businessAge')}
-                                                        placeholder="Years in business"
-                                                        className="h-12"
-                                                    />
+                                                <div>
+                                                    <Label htmlFor="businessAge">Business Age (Years)</Label>
+                                                    <Input id="businessAge" value={formData.businessAge} onChange={handleChange} placeholder="Years in business" />
                                                 </div>
-                                            </div>
+                                            </motion.div>
                                         </TabsContent>
                                     </Tabs>
                                 </div>
 
+                                {/* Addresses */}
+                                {/* <div className="space-y-6">
+                                    <Label htmlFor="permanentAddress">Permanent Address</Label>
+                                    <Textarea id="permanentAddress" value={formData.permanentAddress} onChange={handleChange} placeholder="Your permanent address" />
+                                    {errors.permanentAddress && <p className="text-sm text-red-600">{errors.permanentAddress}</p>}
+                                    <div className="flex items-center gap-2 mt-2">
+                                        <input type="checkbox" checked={sameAsPermAddress} onChange={(e) => setSameAsPermAddress(e.target.checked)} />
+                                        <span className="text-sm text-gray-700">Same as permanent address</span>
+                                    </div>
+                                    <Label htmlFor="communicationAddress">Communication Address</Label>
+                                    <Textarea id="communicationAddress" value={formData.communicationAddress} onChange={handleChange} placeholder="Your communication address" />
+                                </div> */}
+
                                 {/* Message */}
                                 <div className="space-y-6">
-                                    <h3 className="text-lg font-semibold text-foreground border-b pb-2">
+                                    <h3 className="text-xl font-bold text-gray-800 border-b border-gray-300 pb-4">
+                                        <Mail className="inline-block mr-2 w-5 h-5 text-gray-600" />
                                         Additional Information
                                     </h3>
-
-                                    <div className="space-y-2">
-                                        <Label htmlFor="message" className="flex items-center gap-2">
-                                            <span>Message / Requirements</span>
-                                            <span className="text-destructive">*</span>
-                                        </Label>
-                                        <Textarea
-                                            id="message"
-                                            {...register('message')}
-                                            placeholder="Please provide details about your specific requirements, loan amount needed, or any questions you have..."
-                                            className="min-h-[120px]"
-                                        />
-                                        {errors.message && (
-                                            <p className="text-sm text-destructive">{errors.message.message}</p>
-                                        )}
+                                    <div>
+                                        <Label htmlFor="message">Message / Requirements</Label>
+                                        <Textarea id="message" value={formData.message} onChange={handleChange} placeholder="Please provide details..." />
+                                        {errors.message && <p className="text-sm text-red-600">{errors.message}</p>}
                                     </div>
                                 </div>
 
-                                {/* Submit Button */}
+                                {/* Submit */}
                                 <div className="pt-6">
-                                    <Button
-                                        type="submit"
-                                        size="lg"
-                                        disabled={isSubmitting}
-                                        className="w-full h-14 text-lg bg-gradient-primary hover:scale-105 transition-all duration-300 shadow-primary"
-                                    >
+                                    <Button type="submit" size="lg" disabled={isSubmitting} className="w-full h-14">
                                         {isSubmitting ? (
                                             <div className="flex items-center gap-2">
                                                 <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />

@@ -5,9 +5,10 @@ import {
     Globe,
     Users,
     Link2,
-    Shield
+    Shield,
+    Menu // Hamburger icon
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react"; // useEffect add kiya
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
 // UI Components
@@ -34,11 +35,29 @@ import {
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { GearIcon } from "@radix-ui/react-icons";
+import { logoutUser } from "../services/authServices";
+// Make sure this path is correct for your project structure
+// import { logoutUser } from "../../services/authServices";
+
+// --- Custom Hook to detect screen size (within this file) ---
+const useMediaQuery = (query) => {
+    const [matches, setMatches] = useState(false);
+    useEffect(() => {
+        const media = window.matchMedia(query);
+        if (media.matches !== matches) {
+            setMatches(media.matches);
+        }
+        const listener = () => setMatches(media.matches);
+        window.addEventListener("resize", listener);
+        return () => window.removeEventListener("resize", listener);
+    }, [matches, query]);
+    return matches;
+};
+
 
 // --- Data Structures ---
 const navItems = [
     { name: "Dashboard", icon: Home, path: "/dashboard" },
-    // { name: "Services", icon: Terminal, path: "/services" },
     {
         name: "Services",
         icon: IdCard,
@@ -48,80 +67,71 @@ const navItems = [
         ],
     },
     { name: "Quotes", icon: UploadCloud, path: "/quotes" },
-    { name: "Settings", icon: GearIcon, path: "/logs" },
 ];
 
-const NavLink = ({ item, collapsed, isActive }) => (
+// --- MODIFIED NavLink to handle mobile menu close ---
+const NavLink = ({ item, collapsed, isActive, onLinkClick }) => (
     <Tooltip>
         <TooltipTrigger asChild>
-            <div className={`${isActive ? "" : ""}`}>
-                <Link
-                    to={item.path}
-                    className={cn(
-                        "flex items-center my-1 gap-4 rounded-lg px-5 py-2.5 text-sm font-medium text-white transition-colors duration-200",
-                        isActive
-                            ? "bg-[#5246e9] text-white"
-                            : "hover:bg-[#1f2937] hover:text-white",
-                        collapsed ? "justify-center" : "justify-start"
-                    )}
-                >
-                    <item.icon size={18} />
-                    {!collapsed && <span className="truncate">{item.name}</span>}
-                </Link>
-            </div>
+            <Link
+                to={item.path}
+                onClick={onLinkClick} // Yeh add kiya
+                className={cn(
+                    "flex items-center my-1 gap-4 rounded-lg px-5 py-2.5 text-sm font-medium text-white transition-colors duration-200",
+                    isActive
+                        ? "bg-[#5246e9] text-white"
+                        : "hover:bg-[#1f2937] hover:text-white",
+                    collapsed ? "justify-center" : "justify-start"
+                )}
+            >
+                <item.icon size={18} />
+                {!collapsed && <span className="truncate">{item.name}</span>}
+            </Link>
         </TooltipTrigger>
         {collapsed && <TooltipContent side="right">{item.name}</TooltipContent>}
     </Tooltip>
 );
 
-
-export default function Sidebar({ className }) {
+// --- Reusable Sidebar Content ---
+// Yeh content desktop aur mobile dono sidebars mein use hoga
+const SidebarContent = ({ collapsed, setCollapsed, onLinkClick }) => {
     const location = useLocation();
     const navigate = useNavigate();
-    const [collapsed, setCollapsed] = useState(false);
+    const [openMenu, setOpenMenu] = useState(null);
 
     const userData = {
         name: "Raj Mishra",
         email: "admin@raj.com",
         avatarUrl: "https://github.com/shadcn.png",
-        tokens: '2197',
-        plan: "Pro Plus",
     };
 
-    // State to hold the name of the *single* open menu
-    const [openMenu, setOpenMenu] = useState(null);
-
-    const handleLogout = () => {
-        authUtils.removeToken();
-        navigate("/auth/login");
+    const handleLogout = async () => {
+        await logoutUser();
+        navigate("/admin-login");
     };
 
     const handleMenuToggle = (name) => {
+        if (collapsed && setCollapsed) {
+            setCollapsed(false);
+        }
         setOpenMenu(prev => (prev === name ? null : name));
-    };
-
-    const handleRefresh = () => {
-        console.log("Refreshing user data...");
     };
 
     return (
         <TooltipProvider delayDuration={100}>
-            <div
-                className={cn(
-                    "flex flex-col h-screen  bg-[#191a2a] px-2 text-foreground transition-all duration-300 ease-in-out",
-                    collapsed ? "w-20" : "w-64",
-                    className
-                )}
-            >
+            <div className={cn("flex flex-col h-full bg-gradient-to-b from-[#191a2a] to-[#11121e] px-2 text-foreground")}>
                 {/* Header */}
                 <div className="flex items-center justify-between p-4 border-b border-zinc-700 mb-3 h-16">
-                    {!collapsed && <span className="font-bold text-xl text-white">Flexi-Choice</span>}
-                    <Button variant="ghost" size="icon" onClick={() => {
-                        setOpenMenu(null)
-                        setCollapsed(!collapsed)
-                    }} className="h-8 w-8">
-                        {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
-                    </Button>
+                    {!collapsed && <span onClick={() => navigate("/")} className="font-bold cursor-pointer text-xl text-white">Flexi-Choice</span>}
+                    {/* Hide collapse button on mobile where setCollapsed is not available */}
+                    {setCollapsed && (
+                        <Button variant="ghost" size="icon" onClick={() => {
+                            setOpenMenu(null)
+                            setCollapsed(!collapsed)
+                        }} className="h-8 w-8 text-white hover:bg-zinc-800/50 hover:text-white">
+                            {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+                        </Button>
+                    )}
                 </div>
 
                 {/* Navigation */}
@@ -129,86 +139,68 @@ export default function Sidebar({ className }) {
                     <nav className="flex flex-col gap-1 px-0">
                         {navItems.map((item) => {
                             const isMenuOpen = openMenu === item.name;
-                            const isChildActive = item.children?.some(child =>
-                                location.pathname.startsWith(child.path)
-                            );
+                            const isChildActive = item.children?.some(child => location.pathname.startsWith(child.path));
 
                             return item.children ? (
-                                <Tooltip key={item.name}>
-                                    <TooltipTrigger asChild>
-                                        <div>
-                                            {/* Parent menu button */}
-                                            <button
-                                                onClick={() => {
-                                                    collapsed && setCollapsed(false);
-                                                    handleMenuToggle(item.name);
-                                                }}
-                                                className={cn(
-                                                    "flex items-center w-full gap-4 rounded-lg px-5 py-2.5 text-sm font-medium text-white transition-colors duration-200",
-                                                    isChildActive
-                                                        ? " text-white"
-                                                        : "hover:bg-[#1f2937] hover:text-white",
-                                                    collapsed ? "justify-center" : "justify-between"
-                                                )}
-                                            >
-                                                <div className="flex items-center gap-4">
-                                                    <item.icon size={18} />
-                                                    {!collapsed && <span className="truncate">{item.name}</span>}
-                                                </div>
-                                                {!collapsed && (
-                                                    <motion.div
-                                                        animate={{ rotate: isMenuOpen ? 180 : 0 }}
-                                                        transition={{ duration: 0.2 }}
-                                                    >
-                                                        <ChevronDown size={16} />
-                                                    </motion.div>
-                                                )}
-                                            </button>
-
-                                            {/* Child menu */}
-                                            <AnimatePresence>
-                                                {!collapsed && isMenuOpen && (
-                                                    <motion.div
-                                                        initial={{ height: 0, opacity: 0 }}
-                                                        animate={{ height: "auto", opacity: 1 }}
-                                                        exit={{ height: 0, opacity: 0 }}
-                                                        transition={{ duration: 0.3, ease: "easeInOut" }}
-                                                        className="flex flex-col ml-5 pl-2 border-l border-dashed"
-                                                    >
-                                                        {item.children.map((child) => (
-                                                            <NavLink
-                                                                key={child.name}
-                                                                item={child}
-                                                                collapsed={collapsed}
-                                                                isActive={location.pathname === child.path}
-                                                            />
-                                                        ))}
-                                                    </motion.div>
-                                                )}
-                                            </AnimatePresence>
+                                <div key={item.name}>
+                                    <button
+                                        onClick={() => handleMenuToggle(item.name)}
+                                        className={cn(
+                                            "flex items-center w-full gap-4 rounded-lg px-5 py-2.5 text-sm font-medium text-white transition-colors duration-200",
+                                            isChildActive ? "text-white" : "hover:bg-[#1f2937] hover:text-white",
+                                            collapsed ? "justify-center" : "justify-between"
+                                        )}
+                                    >
+                                        <div className="flex items-center gap-4">
+                                            <item.icon size={18} />
+                                            {!collapsed && <span className="truncate">{item.name}</span>}
                                         </div>
-                                    </TooltipTrigger>
-                                    {collapsed && <TooltipContent side="right">{item.name}</TooltipContent>}
-                                </Tooltip>
+                                        {!collapsed && (
+                                            <motion.div animate={{ rotate: isMenuOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                                                <ChevronDown size={16} />
+                                            </motion.div>
+                                        )}
+                                    </button>
+                                    <AnimatePresence>
+                                        {!collapsed && isMenuOpen && (
+                                            <motion.div
+                                                initial={{ height: 0, opacity: 0 }}
+                                                animate={{ height: "auto", opacity: 1 }}
+                                                exit={{ height: 0, opacity: 0 }}
+                                                transition={{ duration: 0.3, ease: "easeInOut" }}
+                                                className="flex flex-col ml-5 pl-2 border-l border-dashed"
+                                            >
+                                                {item.children.map((child) => (
+                                                    <NavLink
+                                                        key={child.name}
+                                                        item={child}
+                                                        collapsed={collapsed}
+                                                        isActive={location.pathname === child.path}
+                                                        onLinkClick={onLinkClick}
+                                                    />
+                                                ))}
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </div>
                             ) : (
                                 <NavLink
                                     key={item.name}
                                     item={item}
                                     collapsed={collapsed}
                                     isActive={location.pathname === item.path}
+                                    onLinkClick={onLinkClick}
                                 />
                             );
                         })}
                     </nav>
-
                 </ScrollArea>
 
                 {/* User Profile & Logout Section */}
                 <div className="mt-auto p-2 border-t border-zinc-700">
-                    {/* Profile Accordion */}
                     <div className="flex flex-col">
                         <button onClick={() => {
-                            collapsed && setCollapsed(false)
+                            if (collapsed && setCollapsed) setCollapsed(false);
                             handleMenuToggle('Profile')
                         }} className="p-2 rounded-lg hover:bg-[#1f2937] w-full">
                             <div className={cn("flex items-center gap-3", collapsed ? "justify-center" : "justify-between")}>
@@ -220,7 +212,7 @@ export default function Sidebar({ className }) {
                                     {!collapsed && (
                                         <div className="flex flex-col text-sm text-left">
                                             {userData.name ? <span className="font-semibold text-white truncate">{userData.name}</span> : <Skeleton className="h-4 w-20 mb-1" />}
-                                            <span className="text-white">Tokens: {userData.tokens.toLocaleString()}</span>
+                                            <span className="text-zinc-200">Role: Admin</span>
                                         </div>
                                     )}
                                 </div>
@@ -231,7 +223,6 @@ export default function Sidebar({ className }) {
                                 )}
                             </div>
                         </button>
-
                         <AnimatePresence>
                             {!collapsed && openMenu === 'Profile' && (
                                 <motion.div
@@ -246,21 +237,11 @@ export default function Sidebar({ className }) {
                                             <span>Email:</span>
                                             {userData.email ? <span className="font-medium text-white truncate">{userData.email}</span> : <Skeleton className="h-4 w-32" />}
                                         </div>
-                                        <div className="flex justify-between items-center">
-                                            <span>Plan:</span>
-                                            <span className="font-medium text-white">{userData.plan}</span>
-                                        </div>
-                                        <Button onClick={handleRefresh} variant="outline" size="sm" className="w-full text-black">
-                                            <RefreshCw size={14} className="mr-2" />
-                                            Refresh Tokens
-                                        </Button>
                                     </div>
                                 </motion.div>
                             )}
                         </AnimatePresence>
                     </div>
-
-                    {/* Logout Button */}
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <AlertDialog>
@@ -292,3 +273,69 @@ export default function Sidebar({ className }) {
         </TooltipProvider>
     );
 }
+
+// --- MAIN COMPONENT THAT DECIDES WHAT TO RENDER ---
+export default function Sidebar({ className }) {
+    const isMobile = useMediaQuery("(max-width: 768px)");
+    const [collapsed, setCollapsed] = useState(false);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+    // Agar mobile view hai, toh return karo Navbar + Sliding Menu
+    if (isMobile) {
+        return (
+            <>
+                <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-4 border-b bg-[#191a2a] px-4 sm:px-6 md:hidden">
+                    <span className="font-bold text-xl text-white">Flexi-Choice</span>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setIsMobileMenuOpen(true)}
+                        className="text-white hover:bg-zinc-800/50 hover:text-white"
+                    >
+                        <Menu className="h-6 w-6" />
+                        <span className="sr-only">Toggle Menu</span>
+                    </Button>
+                </header>
+
+                <AnimatePresence>
+                    {isMobileMenuOpen && (
+                        <>
+                            {/* Backdrop */}
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="fixed inset-0 bg-black/60 z-40 md:hidden"
+                            />
+                            {/* Sliding Sidebar */}
+                            <motion.div
+                                initial={{ x: "-100%" }}
+                                animate={{ x: 0 }}
+                                exit={{ x: "-100%" }}
+                                transition={{ duration: 0.3, ease: "easeInOut" }}
+                                className="fixed inset-y-0 left-0 z-50 w-64 md:hidden"
+                            >
+                                <SidebarContent
+                                    collapsed={false}
+                                    onLinkClick={() => setIsMobileMenuOpen(false)}
+                                />
+                            </motion.div>
+                        </>
+                    )}
+                </AnimatePresence>
+            </>
+        );
+    }
+
+    // Agar desktop view hai, toh normal sidebar return karo
+    return (
+        <aside className={cn("hidden md:block transition-all duration-300 ease-in-out", collapsed ? "w-20" : "w-64", className)}>
+            <SidebarContent
+                collapsed={collapsed}
+                setCollapsed={setCollapsed}
+            />
+        </aside>
+    );
+}
+

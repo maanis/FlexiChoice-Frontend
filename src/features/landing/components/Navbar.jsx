@@ -76,8 +76,8 @@ const Navbar = ({ activeTab, setActiveTab }) => {
 
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled
-        ? 'bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-200/50'
-        : 'bg-white/80 backdrop-blur-sm'
+      ? 'bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-200/50'
+      : 'bg-white/80 backdrop-blur-sm'
       }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
@@ -126,8 +126,8 @@ const Navbar = ({ activeTab, setActiveTab }) => {
                             key={index}
                             onClick={() => handleServiceClick(subItem.serviceType)}
                             className={`w-full flex items-start gap-4 p-3 rounded-lg transition-colors text-left ${activeTab === subItem.serviceType
-                                ? 'bg-blue-50 border border-blue-200'
-                                : 'hover:bg-gray-50'
+                              ? 'bg-blue-50 border border-blue-200'
+                              : 'hover:bg-gray-50'
                               }`}
                           >
                             <div className={`mt-0.5 ${activeTab === subItem.serviceType ? 'text-blue-600' : 'text-blue-500'
@@ -160,12 +160,12 @@ const Navbar = ({ activeTab, setActiveTab }) => {
 
           {/* Desktop Auth Buttons */}
           <div className="hidden md:flex items-center gap-3">
-            <button className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors">
+            {/* <button className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors">
               Login
             </button>
             <button className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm font-medium rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-md hover:shadow-lg">
               Sign Up
-            </button>
+            </button> */}
             <button onClick={() => navigate("/admin-login")} className="px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 transition-colors">
               Admin
             </button>
@@ -201,8 +201,8 @@ const Navbar = ({ activeTab, setActiveTab }) => {
                         key={index}
                         onClick={() => handleServiceClick(subItem.serviceType)}
                         className={`flex items-center gap-3 w-full p-3 rounded-lg text-left transition-colors ${activeTab === subItem.serviceType
-                            ? 'bg-blue-50 border border-blue-200'
-                            : 'hover:bg-gray-50'
+                          ? 'bg-blue-50 border border-blue-200'
+                          : 'hover:bg-gray-50'
                           }`}
                       >
                         <div className={`${activeTab === subItem.serviceType ? 'text-blue-600' : 'text-blue-500'}`}>
