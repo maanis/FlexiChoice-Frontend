@@ -140,10 +140,10 @@ const Footer = () => {
         <div className="border-t border-background/20 py-8">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <div className="text-background/80 text-sm">
-              © 2024 Flexi Choice. All rights reserved.
+              © 2025 Flexi Choice. All rights reserved.
             </div>
             <div className="text-background/80 text-sm text-center md:text-right">
-              <p>IRDAI Registration No. IRDA/DB811/2024</p>
+              {/* <p>IRDAI Registration No. IRDA/DB811/2025</p> */}
               <p className="mt-1">Licensed by Reserve Bank of India</p>
             </div>
           </div>

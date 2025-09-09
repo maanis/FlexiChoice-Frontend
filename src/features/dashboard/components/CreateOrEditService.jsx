@@ -99,6 +99,7 @@ const BannerUpload = ({ banner, setBanner }) => {
                     <div className="relative">
                         <button onClick={() => setBanner(null)} className="absolute right-1 top-1"><LucideIcons.X className="font-semibold text-red-500" /></button>
                         <motion.img
+                            loading="lazy"
                             src={banner.preview}
                             alt="Banner Preview"
                             initial={{ opacity: 0, y: 10 }}
@@ -200,6 +201,7 @@ const ServicePreview = ({ formData, features, banner }) => (
         >
             {banner?.preview && (
                 <img
+                    loading="lazy"
                     src={banner.preview}
                     alt="Banner"
                     className="w-full rounded-lg border border-gray-200 object-cover max-h-32"

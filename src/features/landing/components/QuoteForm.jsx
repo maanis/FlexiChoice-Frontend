@@ -167,7 +167,7 @@ const QuoteForm = ({ serviceName }) => {
                     viewport={{ once: true, amount: 0.2 }}
                     transition={{ duration: 0.8, delay: 0.2 }}
                 >
-                    <Card className="rounded-3xl p-8 bg-gray-50 border border-gray-200 shadow-xl">
+                    <Card className="rounded-3xl p-0 sm:p-8  bg-gray-50 border border-gray-200 shadow-xl">
                         <CardContent>
                             <form onSubmit={onSubmit} className="space-y-12">
                                 {/* Personal Information */}

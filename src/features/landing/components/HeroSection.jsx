@@ -1,13 +1,12 @@
 import { Button } from '@/components/ui/button';
 import { Shield, TrendingUp, HeartPulse, Home, Briefcase } from 'lucide-react';
-import heroImage from '@/assets/hero-financial.jpg';
 import { AuroraBackground } from '../../../components/ui/aurora-background';
 // import { AuroraBackground } from './ui/aurora-background';
 // import { AuroraBackground } from '@/components/ui/aurora-background';
 
 const HeroSection = ({ scrollToSection, setActiveTab }) => (
     <AuroraBackground>
-        <section className="relative max-md:pt-64 min-h-screen text-black w-full flex items-center justify-center  overflow-hidden">
+        <section className="relative max-md:pt-20 h-full text-black w-full flex items-center justify-center  overflow-hidden">
             {/* Background Image */}
             <div className="absolute inset-0 z-0">
                 {/* <img
@@ -46,7 +45,7 @@ const HeroSection = ({ scrollToSection, setActiveTab }) => (
 
                     {/* Right Side: Visual Representation */}
                     <div className="flex flex-col gap-6 items-center justify-center">
-                        <div className="grid grid-cols-2 gap-6">
+                        {/* <div className="grid grid-cols-2 gap-6">
                             <div className="bg-background/10 dark:bg-background/20 shadow-md backdrop-blur-sm rounded-xl p-6 border border-primary-foreground/10 flex flex-col items-center">
                                 <Home className="w-8 h-8 text-blue-600 dark:text-secondary mb-2" />
                                 <span className="font-semibold  dark:">Home Loans</span>
@@ -66,7 +65,9 @@ const HeroSection = ({ scrollToSection, setActiveTab }) => (
                         </div>
                         <div className="mt-6 text-sm text-muted-foreground text-center max-w-xs">
                             Trusted by 50,000+ customers. 24/7 support. 99% approval rate.
-                        </div>
+                        </div> */}
+                        <img src="/hero.jpg" className='w-96' alt="" />
+
                     </div>
                 </div>
             </div>

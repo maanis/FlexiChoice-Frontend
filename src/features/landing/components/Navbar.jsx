@@ -231,11 +231,11 @@ const Navbar = ({ activeTab, setActiveTab }) => {
           ))}
 
           <div className="mt-8 pt-6 border-t border-gray-200 space-y-3">
-            <button className="w-full py-3 px-4 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors">
+            {/* <button className="w-full py-3 px-4 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors">
               Login
-            </button>
-            <button className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200">
-              Sign Up
+            </button> */}
+            <button onClick={() => navigate('/admin-login')} className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200">
+              Admin
             </button>
           </div>
         </div>

@@ -127,8 +127,8 @@ const MotionDiv = ({ children, className = "", delay = 0, ...props }) => (
 
 const AdminLogin = () => {
     const [formData, setFormData] = useState({
-        email: 'admin@raj.com',
-        password: 'admin.raj@973',
+        email: '',
+        password: '',
         remember: false
     });
     const [showPassword, setShowPassword] = useState(false);
